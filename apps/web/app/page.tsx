@@ -63,7 +63,7 @@ function page() {
         </div>
         
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
-          {/* Document Editor */}
+      
           <div className='bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow'>
             <div className='bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto'>
               <FileText size={28} className='text-blue-600' />
@@ -74,7 +74,7 @@ function page() {
             </p>
           </div>
           
-          {/* Shared Whiteboard */}
+       
           <div className='bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow'>
             <div className='bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto'>
               <Square size={28} className='text-blue-600' />
@@ -85,7 +85,7 @@ function page() {
             </p>
           </div>
           
-          {/* Real-time Presence */}
+        
           <div className='bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow'>
             <div className='bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6 mx-auto'>
               <Users size={28} className='text-blue-600' />
