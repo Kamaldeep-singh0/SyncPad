@@ -1,31 +1,15 @@
 {
-  "name": "SyncPad",
   "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "prettier": "^3.5.3",
-    "turbo": "^2.5.3",
-    "typescript": "5.8.2"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "npm@10.2.3",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.1.6",
-    "lucide-react": "^0.509.0",
-    "postcss": "^8.5.3",
-    "react-router-dom": "^7.6.0",
-    "tailwindcss": "^4.1.6"
+  "devDependencies": {
+    "turbo": "^1.11.3"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
   }
 }
