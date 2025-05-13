@@ -1,6 +1,7 @@
 {
   "name": "web",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -8,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "lucide-react": "^0.510.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
   }
 }
