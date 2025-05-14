@@ -9,14 +9,16 @@
     "skipLibCheck": true,               // Skip type checking for declaration files
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": "src"
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
    },
   "include": [
-    "index.ts",
+    "src/index.ts",
     "src/**/*"
-  ]
+  ],
+    "exclude": ["node_modules"]
+
 }
