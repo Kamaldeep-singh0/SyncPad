@@ -55,12 +55,12 @@ userSchemaMongo.pre('save', async function(next) {
   }
 });
 
-userSchemaMongo.methods.comparePassword = async function(candidatePassword: string) {
+userSchemaMongo.methods.comparePassword = async function(this: IUser, candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model('User',userSchemaMongo);
+const User = mongoose.model<IUser>('User',userSchemaMongo);
 
-module.exports ={
-    User
-};
+export {User};
+
+export type {IUser};

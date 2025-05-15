@@ -7,4 +7,3 @@ export const userSchema = z.object({
   password: z.string().min(5) 
 });
 
-export type User = z.infer<typeof userSchema>;

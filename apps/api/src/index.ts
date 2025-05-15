@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { connectDB } from './config/db.js';
+import registerRouter from './auth/register.js'
 
 dotenv.config();
 
@@ -16,6 +17,10 @@ app.use(express.json());
 app.get('/', (req, res ) => {
   res.send('Hello, TypeScript Express!');
 });
+
+
+app.use('/api', registerRouter);
+
 
 app.listen(port,()=>{
     console.log(`The BackEnd is Running on Port:${port}`);
