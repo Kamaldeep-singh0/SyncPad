@@ -12,7 +12,10 @@ interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-const userSchema = new Schema({
+
+
+
+const userSchemaMongo = new Schema({
     firstName : {
         type : String,
         minLength : 3 ,
@@ -40,31 +43,23 @@ const userSchema = new Schema({
     }
 })
 
-userSchema.pre('save',(next)=>{
-    const user  = this;
-
-    if(!user.isModified('password')) return next();
-
-    bcrypt.genSalt(SALT_WORK_FACTOR,(err,salt)=>{
-        if(err) return next(err);
-
-        bcrypt.hash(user.password,salt,(err,hash)=>{
-            if(err) return next(err);
-
-            user.password =hash;
-            next();
-        });
-    });
+userSchemaMongo.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err as Error);
+  }
 });
 
-userSchema.methods.comparePassword = function(candidatePassword : String, cb) {
-  bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
-    if (err) return cb(err);
-    cb(null, isMatch);
-  });
+userSchemaMongo.methods.comparePassword = async function(candidatePassword: string) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model('User',userSchema);
+const User = mongoose.model('User',userSchemaMongo);
 
 module.exports ={
     User
