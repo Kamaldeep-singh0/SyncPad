@@ -1,14 +1,10 @@
 import express, { Request, Response } from 'express';
 import {userSchema} from '@syncpad/validation';
-import {User} from '../models/user.js'
+import {User} from '../models/user.js';
 import jwt from 'jsonwebtoken';
 
 
 const router = express.Router();
-
-router.get('/test', (req, res) => {
-  res.send('Router is working');
-});
 
        router.post("/onboarding", async (req: Request, res: Response) => {
       const result = userSchema.safeParse(req.body);
@@ -42,6 +38,9 @@ router.get('/test', (req, res) => {
          }
 
        const token = jwt.sign({userId}, JWT_SECRET , { expiresIn: '1h' });
+       
+         
+
 
        res.json({
         message : "User created Successfully" ,
