@@ -1,10 +1,14 @@
 import express, { Request, Response } from 'express';
-import {userSchema} from '@syncpad/validation'
+import {userSchema} from '@syncpad/validation';
 import {User} from '../models/user.js'
 import jwt from 'jsonwebtoken';
 
 
 const router = express.Router();
+
+router.get('/test', (req, res) => {
+  res.send('Router is working');
+});
 
        router.post("/onboarding", async (req: Request, res: Response) => {
       const result = userSchema.safeParse(req.body);
