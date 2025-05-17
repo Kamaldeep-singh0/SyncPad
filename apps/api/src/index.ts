@@ -23,7 +23,7 @@ app.get('/', (req, res ) => {
 
 app.use('/api', registerRouter);
 app.use('/api', loginRouter);
-app.use('/api',workspaceRouer)
+app.use('/api',workspaceRouer);
 
 app.listen(port,()=>{
     console.log(`The BackEnd is Running on Port:${port}`);

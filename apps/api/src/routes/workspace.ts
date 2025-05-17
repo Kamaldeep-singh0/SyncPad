@@ -32,6 +32,38 @@ router.post('/workspace',authMiddleware, async (req , res)=>{
     }
 });
 
+
+
+router.get('/workspaces', authMiddleware, async (req, res) => {
+    try {
+        if (!req.user?.userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User ID missing"
+            });
+        }
+
+        const workspaces = await Workspace.find({
+            $or: [
+                { createdBy: req.user.userId },
+                { 'members.userId': req.user.userId }
+            ]
+        });
+      
+
+        res.status(200).json({
+            success: true,
+            count: workspaces.length,
+            workspaces
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch workspaces',
+        });
+    }
+});
 router.post('/workspace/:id/invite', authMiddleware,async (req, res)=>{
     try{
         const{email,role} = req.body;

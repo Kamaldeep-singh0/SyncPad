@@ -1,25 +1,24 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "target": "ES6",                   // Ensures modern syntax
-    "module": "NodeNext",                 // Compile as ES modules
-    "moduleResolution": "NodeNext",         // Resolve modules like Node.js
-    "strict": true,                     // Enable strict mode
-    "esModuleInterop": true,            // Allow importing CommonJS modules as ESM
-    "skipLibCheck": true,               // Skip type checking for declaration files
+    "target": "ES2022",
+    "module": "NodeNext", 
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./node_modules/@types", "./types"],
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
-   },
-  "include": [
-    "src/index.ts",
-    "src/**/*"
-  ],
-    "exclude": ["node_modules"]
-
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

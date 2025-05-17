@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "turbo": "^2.5.3"
   },
   "scripts": {
