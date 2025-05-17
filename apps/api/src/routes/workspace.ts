@@ -31,3 +31,79 @@ router.post('/workspace',authMiddleware, async (req , res)=>{
         });
     }
 });
+
+router.post('/workspace/:id/invite', authMiddleware,async (req, res)=>{
+    try{
+        const{email,role} = req.body;
+        const workspaceId = req.params.id;
+
+        const workspace = await Workspace.findOne({
+            _id : workspaceId,
+            'members.userId' : req.userId,
+            'members.role' : 'Owner'
+        });
+
+        if(!workspace){
+            return res.status(403).json({
+                success: false,
+                message : "only owner can invites users"
+            });
+        }
+
+
+
+   res.json({
+      success: true,
+      message: 'Invitation sent successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send invitation'
+    });
+  }
+});
+
+
+router.patch('/workspaces/:id/role', authMiddleware, async(req,res)=>{
+    try{
+        const{userId , newRole} = req.body;
+        const workspaceId = req.params.id;
+
+        const isOwner = await Workspace.exists({
+            _id:workspaceId,
+            'members.userId' : req.userId,
+            'members.role' : 'Owner'
+        });
+
+        if(!isOwner){
+            return res.status(403).json({
+                success : false,
+                message: "Only Owner can Change roles"
+            });
+        }
+
+        await Workspace.updateOne(
+            {
+                _id : workspaceId,
+                'members.userId' : userId
+            },
+            {
+                $set:{'members.$.role':newRole}
+            }
+        );
+
+        res.json({
+            success: true,
+            message: "Role updated Successfully"
+        });
+    } catch(error){
+        res.status(500).json({
+            success : false,
+            message : "Failed to update role "
+        });
+    }
+});
+
+export default router;
+
