@@ -12,9 +12,9 @@ router.post('/workspace',authMiddleware, async (req , res)=>{
         const workspace = new Workspace({
             name,
             description,
-            createdBy: req.userId,
+            createdBy: req.user?.userId,
             members : [{
-                userId : req.userId,
+                userId : req.user?.userId,
                 role: 'Owner'
             }]
         });
@@ -39,7 +39,7 @@ router.post('/workspace/:id/invite', authMiddleware,async (req, res)=>{
 
         const workspace = await Workspace.findOne({
             _id : workspaceId,
-            'members.userId' : req.userId,
+            'members.userId' : req.user?.userId,
             'members.role' : 'Owner'
         });
 
@@ -72,7 +72,7 @@ router.patch('/workspaces/:id/role', authMiddleware, async(req,res)=>{
 
         const isOwner = await Workspace.exists({
             _id:workspaceId,
-            'members.userId' : req.userId,
+            'members.userId' : req.user?.userId,
             'members.role' : 'Owner'
         });
 

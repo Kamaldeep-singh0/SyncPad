@@ -3,15 +3,6 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.js';
 
 
-declare global {
-        namespace Express {
-            interface Request {
-                user?: {
-                  userId: string;
-                   };
-                 }
-            }
-            }
 
       export const authMiddleware = async (req: Request,res: Response,next: NextFunction) => {
            try {

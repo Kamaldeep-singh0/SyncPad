@@ -4,6 +4,7 @@ import cors from 'cors';
 import { connectDB } from './config/db.js';
 import registerRouter from './auth/register.js'
 import loginRouter from './auth/login.js'
+import workspaceRouer from './routes/workspace.js'
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get('/', (req, res ) => {
 
 app.use('/api', registerRouter);
 app.use('/api', loginRouter);
+app.use('/api',workspaceRouer)
 
 app.listen(port,()=>{
     console.log(`The BackEnd is Running on Port:${port}`);
