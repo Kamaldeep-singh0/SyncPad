@@ -12,6 +12,8 @@ interface IDocument extends Document {
   content: string;
   workspace: mongoose.Types.ObjectId;
   createdBy: mongoose.Types.ObjectId;
+    createdAt: Date;
+  updatedAt: Date;
   versions: IDocumentVersion[];
 }
 
