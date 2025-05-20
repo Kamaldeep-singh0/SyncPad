@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/documents', authMiddleware, async (req, res) => {
   try {
     const { title, workspaceId } = req.body;
+    const inContent='Start Writing';
     const userId = req.user?.userId;
 
 
@@ -26,10 +27,11 @@ router.post('/documents', authMiddleware, async (req, res) => {
 
     const document = new DocumentModel({
       title,
+      content: inContent,
       workspace: workspaceId,
       createdBy: userId,
       versions: [{
-        content: '',
+        content: inContent,
         createdBy: userId
       }]
     });
