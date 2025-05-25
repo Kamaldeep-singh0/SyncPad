@@ -130,7 +130,7 @@ router.put('/documents/:id', authMiddleware, async (req, res) => {
       updatedAt: document.updatedAt
     });
   } catch (error) {
-    res.status().json({
+    res.status(500).json({
       success: false,
       message: 'Failed to update document'
     });
