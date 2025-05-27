@@ -6,6 +6,7 @@ import registerRouter from './auth/register.js'
 import loginRouter from './auth/login.js'
 import workspaceRouer from './routes/workspace.js'
 import documentRouter from './routes/document.js'
+import whiteboardRouter from './routes/whiteboards.js'
 
 dotenv.config();
 
@@ -25,7 +26,8 @@ app.get('/', (req, res ) => {
 app.use('/api', registerRouter);
 app.use('/api', loginRouter);
 app.use('/api',workspaceRouer);
-app.use('/api',documentRouter)
+app.use('/api',documentRouter);
+app.use('/api/whiteboard',whiteboardRouter)
 
 app.listen(port,()=>{
     console.log(`The BackEnd is Running on Port:${port}`);
