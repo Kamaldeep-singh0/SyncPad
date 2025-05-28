@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.8",
     "cross-env": "^7.0.3",
     "turbo": "^2.5.3"
   },
