@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { 
   FileText, 
   Square, 
@@ -21,11 +23,71 @@ import {
   Lock,
   Calendar,
   TrendingUp,
-  Zap
+  Zap,
+  LucideIcon
 } from 'lucide-react';
 
+// Type definitions
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+};
+
+type Workspace = {
+  id: string;
+  name: string;
+  description: string;
+  members: number;
+  documents: number;
+  whiteboards: number;
+  role: 'owner' | 'editor' | 'viewer';
+  lastActivity: string;
+  isPublic: boolean;
+};
+
+type Document = {
+  id: string;
+  title: string;
+  workspace: string;
+  lastModified: string;
+  author: string;
+  type: 'document' | 'whiteboard';
+  collaborators: number;
+};
+
+type ActivityItem = {
+  id: string;
+  type: 'document_edit' | 'workspace_invite' | 'whiteboard_create' | 'document_comment';
+  user: string;
+  action: string;
+  target: string;
+  time: string;
+};
+
+type Stats = {
+  totalDocuments: number;
+  totalWhiteboards: number;
+  totalWorkspaces: number;
+  activeCollaborators: number;
+  documentsThisWeek: number;
+  whiteboardsThisWeek: number;
+  collaborationTime: string;
+  realtimeUsers: number;
+};
+
+type MockData = {
+  user: User;
+  workspaces: Workspace[];
+  recentDocuments: Document[];
+  activity: ActivityItem[];
+  stats: Stats;
+};
+
 // Mock data based on your API structure
-const mockData = {
+const mockData: MockData = {
   user: {
     id: '1',
     name: 'Alex Johnson',
@@ -152,8 +214,19 @@ const mockData = {
   }
 };
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
-  const menuItems = [
+type MenuItem = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+type SidebarProps = {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+};
+
+const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
+  const menuItems: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'workspaces', label: 'Workspaces', icon: FolderOpen },
     { id: 'documents', label: 'Documents', icon: FileText },
@@ -211,7 +284,15 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   );
 };
 
-const StatCard = ({ title, value, change, icon: Icon, color = 'blue' }) => {
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  change?: string | number;
+  icon: LucideIcon;
+  color?: 'blue' | 'green' | 'purple' | 'orange';
+};
+
+const StatCard = ({ title, value, change, icon: Icon, color = 'blue' }: StatCardProps) => {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600 border-blue-200',
     green: 'bg-green-50 text-green-600 border-green-200',
@@ -240,7 +321,11 @@ const StatCard = ({ title, value, change, icon: Icon, color = 'blue' }) => {
   );
 };
 
-const WorkspaceCard = ({ workspace }) => {
+type WorkspaceCardProps = {
+  workspace: Workspace;
+};
+
+const WorkspaceCard = ({ workspace }: WorkspaceCardProps) => {
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all hover:border-blue-200">
       <div className="flex items-start justify-between mb-4">
@@ -294,7 +379,11 @@ const WorkspaceCard = ({ workspace }) => {
   );
 };
 
-const DocumentItem = ({ doc }) => {
+type DocumentItemProps = {
+  doc: Document;
+};
+
+const DocumentItem = ({ doc }: DocumentItemProps) => {
   const IconComponent = doc.type === 'document' ? FileText : Square;
   
   return (
@@ -332,8 +421,12 @@ const DocumentItem = ({ doc }) => {
   );
 };
 
-const ActivityItem = ({ activity }) => {
-  const getActivityIcon = (type) => {
+type ActivityItemProps = {
+  activity: ActivityItem;
+};
+
+const ActivityItem = ({ activity }: ActivityItemProps) => {
+  const getActivityIcon = (type: ActivityItem['type']): LucideIcon => {
     switch (type) {
       case 'document_edit': return Edit3;
       case 'workspace_invite': return UserPlus;
@@ -361,8 +454,8 @@ const ActivityItem = ({ activity }) => {
 };
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const renderContent = () => {
     switch (activeTab) {
@@ -389,12 +482,14 @@ const Dashboard = () => {
                 title="Active Users"
                 value={mockData.stats.realtimeUsers}
                 icon={Zap}
-                color="green" change={undefined}              />
+                color="green"
+              />
               <StatCard
                 title="Collaboration Time"
                 value={mockData.stats.collaborationTime}
                 icon={Clock}
-                color="orange" change={undefined}              />
+                color="orange"
+              />
             </div>
 
             {/* Recent Activity & Documents */}
@@ -513,11 +608,11 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                    <input type="text" value={mockData.user.name} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <input type="text" defaultValue={mockData.user.name} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" value={mockData.user.email} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <input type="email" defaultValue={mockData.user.email} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                   </div>
                 </div>
               </div>
