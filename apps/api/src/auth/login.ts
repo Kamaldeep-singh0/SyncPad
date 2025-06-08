@@ -17,7 +17,7 @@ const router = express.Router();
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({
-                message: "User not found"
+                message: "User not Found"
             });
         }
             const isPasswordValid = await user.comparePassword(password);
