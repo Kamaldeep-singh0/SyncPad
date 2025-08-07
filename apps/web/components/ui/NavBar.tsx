@@ -1,25 +1,26 @@
 import React from 'react'
 
 
-function NavBar() {
-  return (
-    <div className=' flex justify-between px-7 py-3 border-zinc-200 border-b-1  '>
-      <div>
-       <h1 className='text-2xl font-bold'>SyncPad</h1>
-       
-       <img src=""/>
+const NavBar = () => (
+  <nav className="bg-white border-b border-gray-100 px-6 py-4">
+    <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-sm">S</span>
+        </div>
+        <span className="text-xl font-bold text-gray-900">SyncPad</span>
       </div>
-      <div className='grid grid-cols-2 gap-3 '>
-         <button className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-md">
-        Login
-       </button>
-        <button className=' hover:bg-purple-500 rounded-md py-2 px-4 hover:text-white font-semibold '>
-        Sign Up
-       </button>
-    
+      <div className="flex items-center space-x-4">
+        <button className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors">
+          Login
+        </button>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+          Sign Up
+        </button>
       </div>
     </div>
-  )
-}
+  </nav>
+);
 
-export default NavBar
+
+export default NavBar;

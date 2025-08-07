@@ -1,43 +1,8 @@
 import React from 'react';
 import { FileText, Square, Users, ArrowRight, Check } from 'lucide-react';
+import NavBar from '../components/ui/NavBar';
+import TrustedBySection from '../components/TrustedBySection';
 
-const NavBar = () => (
-  <nav className="bg-white border-b border-gray-100 px-6 py-4">
-    <div className="max-w-7xl mx-auto flex items-center justify-between">
-      <div className="flex items-center space-x-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">S</span>
-        </div>
-        <span className="text-xl font-bold text-gray-900">SyncPad</span>
-      </div>
-      <div className="flex items-center space-x-4">
-        <button className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg font-medium transition-colors">
-          Login
-        </button>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-          Sign Up
-        </button>
-      </div>
-    </div>
-  </nav>
-);
-
-const TrustedBySection = () => (
-  <div className="bg-gray-50 py-12">
-    <div className="max-w-7xl mx-auto px-6">
-      <p className="text-center text-sm font-medium text-gray-500 mb-8">
-        TRUSTED BY TEAMS AT
-      </p>
-      <div className="flex justify-center items-center space-x-12 opacity-60">
-        {['TechCorp', 'InnovateLabs', 'DigitalFlow', 'TeamSync', 'CodeBase'].map((company) => (
-          <div key={company} className="text-gray-400 font-semibold text-lg">
-            {company}
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 const ProfessionalLandingPage = () => {
   return (
