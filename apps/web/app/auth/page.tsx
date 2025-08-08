@@ -1,6 +1,8 @@
 'use client';
+import { useSearchParams } from 'next/navigation';
 
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 
 interface FormData {
   email: string;
@@ -18,6 +20,14 @@ function AuthPage() {
     name: ''
   });
 
+  const searchParams = useSearchParams();
+  const mode = searchParams.get('mode');
+     
+    useEffect(()=>{
+      if(mode == 'signup'){
+        setIsLogin(false);
+      }
+    },[])
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
