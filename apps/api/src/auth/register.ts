@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import {userSchema} from '@syncpad/validation';
+import {userSchema}from '@syncpad/validation';
 import {User} from '../models/user.js';
 import jwt from 'jsonwebtoken';
 
