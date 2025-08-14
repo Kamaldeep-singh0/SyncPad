@@ -2,33 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FileText, 
-  Square, 
-  Users, 
-  Home, 
-  Settings, 
-  Search, 
-  Plus, 
-  MoreVertical,
-  Clock,
-  Eye,
-  Edit3,
-  Trash2,
-  UserPlus,
-  Activity,
-  FolderOpen,
-  Bell,
-  ChevronRight,
-  Globe,
-  Lock,
-  Calendar,
-  TrendingUp,
-  Zap,
-  LucideIcon,
-  LogOut,
-  Loader2
-} from 'lucide-react';
+import { FileText, Square, Users, Home, Settings, Search, Plus, MoreVertical, Clock, Eye, Edit3, Trash2, UserPlus, Activity, FolderOpen, Bell, ChevronRight, Globe, Lock, Calendar, TrendingUp, Zap, DivideIcon , LogOut, Loader2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // API Configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -47,7 +22,8 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   if (!response.ok) {
-    throw new Error(`API call failed: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `API call failed: ${response.statusText}`);
   }
 
   return response.json();
@@ -238,10 +214,11 @@ const StatCard = ({ title, value, icon: Icon, color = 'blue', loading }: StatCar
 type WorkspaceCardProps = {
   workspace: Workspace;
   onOpen: (workspaceId: string) => void;
+  onInvite: (workspaceId: string) => void;
   currentUserId: string;
 };
 
-const WorkspaceCard = ({ workspace, onOpen, currentUserId }: WorkspaceCardProps) => {
+const WorkspaceCard = ({ workspace, onOpen, onInvite, currentUserId }: WorkspaceCardProps) => {
   const userRole = workspace.members.find(m => m.userId === currentUserId)?.role || 'Viewer';
   const isOwner = workspace.createdBy === currentUserId;
 
@@ -283,15 +260,25 @@ const WorkspaceCard = ({ workspace, onOpen, currentUserId }: WorkspaceCardProps)
       </div>
       
       <div className="flex items-center justify-between text-sm">
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => onOpen(workspace._id)}
+            className="text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Open
+          </button>
+          {isOwner && (
+            <button 
+              onClick={() => onInvite(workspace._id)}
+              className="text-green-600 hover:text-green-700 font-medium"
+            >
+              Invite
+            </button>
+          )}
+        </div>
         <span className="text-gray-500">
-          Updated: {new Date(workspace.updatedAt).toLocaleDateString()}
+          {new Date(workspace.updatedAt).toLocaleDateString()}
         </span>
-        <button 
-          onClick={() => onOpen(workspace._id)}
-          className="text-blue-600 hover:text-blue-700 font-medium"
-        >
-          Open workspace
-        </button>
       </div>
     </div>
   );
@@ -301,9 +288,10 @@ type DocumentItemProps = {
   doc: Document;
   workspaceName?: string;
   onEdit: (docId: string) => void;
+  onDelete: (docId: string) => void;
 };
 
-const DocumentItem = ({ doc, workspaceName, onEdit }: DocumentItemProps) => {
+const DocumentItem = ({ doc, workspaceName, onEdit, onDelete }: DocumentItemProps) => {
   return (
     <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
       <div className="flex items-center space-x-4">
@@ -320,7 +308,7 @@ const DocumentItem = ({ doc, workspaceName, onEdit }: DocumentItemProps) => {
       
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">{doc.versions.length} versions</span>
+          <span className="text-sm text-gray-500">{doc.versions?.length || 0} versions</span>
         </div>
         <div className="flex items-center space-x-1">
           <button className="p-2 hover:bg-gray-100 rounded">
@@ -332,8 +320,11 @@ const DocumentItem = ({ doc, workspaceName, onEdit }: DocumentItemProps) => {
           >
             <Edit3 size={16} className="text-gray-400" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <MoreVertical size={16} className="text-gray-400" />
+          <button 
+            onClick={() => onDelete(doc._id)}
+            className="p-2 hover:bg-gray-100 rounded"
+          >
+            <Trash2 size={16} className="text-red-400" />
           </button>
         </div>
       </div>
@@ -345,9 +336,10 @@ type WhiteboardItemProps = {
   whiteboard: Whiteboard;
   workspaceName?: string;
   onEdit: (whiteboardId: string) => void;
+  onDelete: (whiteboardId: string) => void;
 };
 
-const WhiteboardItem = ({ whiteboard, workspaceName, onEdit }: WhiteboardItemProps) => {
+const WhiteboardItem = ({ whiteboard, workspaceName, onEdit, onDelete }: WhiteboardItemProps) => {
   return (
     <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
       <div className="flex items-center space-x-4">
@@ -364,7 +356,7 @@ const WhiteboardItem = ({ whiteboard, workspaceName, onEdit }: WhiteboardItemPro
       
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">{whiteboard.state.elements.length} elements</span>
+          <span className="text-sm text-gray-500">{whiteboard.state?.elements?.length || 0} elements</span>
         </div>
         <div className="flex items-center space-x-1">
           <button className="p-2 hover:bg-gray-100 rounded">
@@ -376,8 +368,11 @@ const WhiteboardItem = ({ whiteboard, workspaceName, onEdit }: WhiteboardItemPro
           >
             <Edit3 size={16} className="text-gray-400" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <MoreVertical size={16} className="text-gray-400" />
+          <button 
+            onClick={() => onDelete(whiteboard._id)}
+            className="p-2 hover:bg-gray-100 rounded"
+          >
+            <Trash2 size={16} className="text-red-400" />
           </button>
         </div>
       </div>
@@ -410,12 +405,21 @@ const Dashboard = () => {
   const [newDocumentTitle, setNewDocumentTitle] = useState('');
   const [newWhiteboardTitle, setNewWhiteboardTitle] = useState('');
   const [selectedWorkspace, setSelectedWorkspace] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteWorkspaceId, setInviteWorkspaceId] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'Editor' | 'Viewer'>('Viewer');
 
   const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/auth');
+      return;
+    }
     loadDashboardData();
-  }, []);
+  }, [router]);
 
   const loadDashboardData = async () => {
     try {
@@ -429,18 +433,12 @@ const Dashboard = () => {
       const workspacesResponse = await apiCall('/api/workspaces');
       const workspaces = workspacesResponse.workspaces || [];
 
-      // Load documents and whiteboards for each workspace
+      // Load documents for all workspaces
       let allDocuments: Document[] = [];
       let allWhiteboards: Whiteboard[] = [];
 
-      for (const workspace of workspaces) {
-        try {
-          // Note: You'll need to create endpoints to get documents by workspace
-          // For now, we'll use placeholder data
-        } catch (error) {
-          console.error(`Error loading data for workspace ${workspace._id}:`, error);
-        }
-      }
+      // For now, we'll use empty arrays since we need specific endpoints
+      // You can implement these when you have workspace-specific document/whiteboard endpoints
 
       setDashboardData({
         user,
@@ -456,14 +454,22 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      // If token is invalid, redirect to auth
+      if (error instanceof Error && error.message.includes('401')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/auth');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateWorkspace = async () => {
+    if (!newWorkspaceName.trim()) return;
+    
     try {
-      await apiCall('/api/workspace', {
+      const response = await apiCall('/api/workspace', {
         method: 'POST',
         body: JSON.stringify({
           name: newWorkspaceName,
@@ -471,19 +477,23 @@ const Dashboard = () => {
         })
       });
       
-      setNewWorkspaceName('');
-      setNewWorkspaceDescription('');
-      setShowCreateWorkspace(false);
-      loadDashboardData();
+      if (response.success) {
+        setNewWorkspaceName('');
+        setNewWorkspaceDescription('');
+        setShowCreateWorkspace(false);
+        loadDashboardData();
+      }
     } catch (error) {
       console.error('Error creating workspace:', error);
-      alert('Failed to create workspace');
+      alert('Failed to create workspace: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
   const handleCreateDocument = async () => {
+    if (!newDocumentTitle.trim() || !selectedWorkspace) return;
+    
     try {
-      await apiCall('/api/documents', {
+      const response = await apiCall('/api/documents', {
         method: 'POST',
         body: JSON.stringify({
           title: newDocumentTitle,
@@ -491,19 +501,25 @@ const Dashboard = () => {
         })
       });
       
-      setNewDocumentTitle('');
-      setSelectedWorkspace('');
-      setShowCreateDocument(false);
-      loadDashboardData();
+      if (response.success) {
+        setNewDocumentTitle('');
+        setSelectedWorkspace('');
+        setShowCreateDocument(false);
+        loadDashboardData();
+        // Navigate to the new document
+        router.push(`/document/${response.document.id}`);
+      }
     } catch (error) {
       console.error('Error creating document:', error);
-      alert('Failed to create document');
+      alert('Failed to create document: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
   const handleCreateWhiteboard = async () => {
+    if (!newWhiteboardTitle.trim() || !selectedWorkspace) return;
+    
     try {
-      await apiCall('/api/whiteboards', {
+      const response = await apiCall('/api/whiteboards', {
         method: 'POST',
         body: JSON.stringify({
           title: newWhiteboardTitle,
@@ -515,9 +531,66 @@ const Dashboard = () => {
       setSelectedWorkspace('');
       setShowCreateWhiteboard(false);
       loadDashboardData();
+      // Navigate to the new whiteboard
+      router.push(`/whiteboard/${response._id}`);
     } catch (error) {
       console.error('Error creating whiteboard:', error);
-      alert('Failed to create whiteboard');
+      alert('Failed to create whiteboard: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleInviteUser = async () => {
+    if (!inviteEmail.trim() || !inviteWorkspaceId) return;
+    
+    try {
+      const response = await apiCall(`/api/workspace/${inviteWorkspaceId}/invite`, {
+        method: 'POST',
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole
+        })
+      });
+      
+      if (response.success) {
+        setInviteEmail('');
+        setInviteRole('Viewer');
+        setShowInviteModal(false);
+        setInviteWorkspaceId('');
+        alert('Invitation sent successfully!');
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      alert('Failed to send invitation: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    
+    try {
+      // You'll need to implement this endpoint in your backend
+      await apiCall(`/api/documents/${docId}`, {
+        method: 'DELETE'
+      });
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Failed to delete document: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleDeleteWhiteboard = async (whiteboardId: string) => {
+    if (!confirm('Are you sure you want to delete this whiteboard?')) return;
+    
+    try {
+      // You'll need to implement this endpoint in your backend
+      await apiCall(`/api/whiteboards/${whiteboardId}`, {
+        method: 'DELETE'
+      });
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error deleting whiteboard:', error);
+      alert('Failed to delete whiteboard: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -582,6 +655,7 @@ const Dashboard = () => {
                       doc={doc} 
                       workspaceName={workspace?.name}
                       onEdit={(docId) => router.push(`/document/${docId}`)}
+                      onDelete={handleDeleteDocument}
                     />
                   );
                 })}
@@ -618,19 +692,20 @@ const Dashboard = () => {
                     placeholder="Workspace name"
                     value={newWorkspaceName}
                     onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <textarea
                     placeholder="Workspace description"
                     value={newWorkspaceDescription}
                     onChange={(e) => setNewWorkspaceDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
                   <div className="flex space-x-3">
                     <button
                       onClick={handleCreateWorkspace}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+                      disabled={!newWorkspaceName.trim()}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Create
                     </button>
@@ -652,9 +727,59 @@ const Dashboard = () => {
                   workspace={workspace} 
                   currentUserId={dashboardData.user?._id || ''}
                   onOpen={(workspaceId) => router.push(`/workspace/${workspaceId}`)}
+                  onInvite={(workspaceId) => {
+                    setInviteWorkspaceId(workspaceId);
+                    setShowInviteModal(true);
+                  }}
                 />
               ))}
             </div>
+
+            {/* Invite Modal */}
+            {showInviteModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
+                  <h3 className="text-lg font-semibold mb-4">Invite User to Workspace</h3>
+                  <div className="space-y-4">
+                    <input
+                      type="email"
+                      placeholder="Email address"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <select
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value as 'Editor' | 'Viewer')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Viewer">Viewer</option>
+                      <option value="Editor">Editor</option>
+                    </select>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={handleInviteUser}
+                        disabled={!inviteEmail.trim()}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Send Invite
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowInviteModal(false);
+                          setInviteEmail('');
+                          setInviteRole('Viewer');
+                          setInviteWorkspaceId('');
+                        }}
+                        className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -681,12 +806,12 @@ const Dashboard = () => {
                     placeholder="Document title"
                     value={newDocumentTitle}
                     onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <select
                     value={selectedWorkspace}
                     onChange={(e) => setSelectedWorkspace(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select a workspace</option>
                     {dashboardData.workspaces.map(workspace => (
@@ -698,8 +823,8 @@ const Dashboard = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={handleCreateDocument}
-                      disabled={!newDocumentTitle || !selectedWorkspace}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                      disabled={!newDocumentTitle.trim() || !selectedWorkspace}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Create
                     </button>
@@ -724,6 +849,7 @@ const Dashboard = () => {
                       doc={doc} 
                       workspaceName={workspace?.name}
                       onEdit={(docId) => router.push(`/document/${docId}`)}
+                      onDelete={handleDeleteDocument}
                     />
                   );
                 })}
@@ -760,12 +886,12 @@ const Dashboard = () => {
                     placeholder="Whiteboard title"
                     value={newWhiteboardTitle}
                     onChange={(e) => setNewWhiteboardTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <select
                     value={selectedWorkspace}
                     onChange={(e) => setSelectedWorkspace(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select a workspace</option>
                     {dashboardData.workspaces.map(workspace => (
@@ -777,8 +903,8 @@ const Dashboard = () => {
                   <div className="flex space-x-3">
                     <button
                       onClick={handleCreateWhiteboard}
-                      disabled={!newWhiteboardTitle || !selectedWorkspace}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                      disabled={!newWhiteboardTitle.trim() || !selectedWorkspace}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Create
                     </button>
@@ -803,6 +929,7 @@ const Dashboard = () => {
                       whiteboard={whiteboard} 
                       workspaceName={workspace?.name}
                       onEdit={(whiteboardId) => router.push(`/whiteboard/${whiteboardId}`)}
+                      onDelete={handleDeleteWhiteboard}
                     />
                   );
                 })}
@@ -814,3 +941,151 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        );
+
+      case 'activity':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Activity Feed</h2>
+            
+            <div className="bg-white rounded-xl border border-gray-200">
+              <div className="p-8 text-center text-gray-500">
+                Activity feed coming soon! This will show recent edits, collaborations, and workspace changes.
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Settings</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                    <input 
+                      type="text" 
+                      defaultValue={dashboardData.user?.firstName || ''} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input 
+                      type="text" 
+                      defaultValue={dashboardData.user?.lastName || ''} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input 
+                      type="email" 
+                      defaultValue={dashboardData.user?.email || ''} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    />
+                  </div>
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                    Update Profile
+                  </button>
+                </div>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Email notifications</span>
+                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Real-time updates</span>
+                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Show presence indicators</span>
+                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Auto-save documents</span>
+                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Danger Zone</h4>
+                  <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium">
+                    Delete Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return <div>Tab not found</div>;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <Loader2 size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex bg-gray-50 min-h-screen">
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        user={dashboardData.user}
+        onLogout={handleLogout}
+      />
+      
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white border-b border-gray-200 px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search documents, whiteboards..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <button className="p-2 hover:bg-gray-100 rounded-lg relative">
+                <Bell size={20} className="text-gray-600" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                {dashboardData.user?.firstName?.charAt(0) || 'U'}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 p-8">
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
