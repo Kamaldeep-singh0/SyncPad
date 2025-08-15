@@ -1,94 +1,217 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FileText, Square, Users, Home, Settings, Search, Plus, MoreVertical, Clock, Eye, Edit3, Trash2, UserPlus, Activity, FolderOpen, Bell, ChevronRight, Globe, Lock, Calendar, TrendingUp, Zap, DivideIcon , LogOut, Loader2 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-
-// API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-
-// API Helper functions
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API call failed: ${response.statusText}`);
-  }
-
-  return response.json();
-};
+import React, { useState } from 'react';
+import { 
+  FileText, 
+  Square, 
+  Users, 
+  Home, 
+  Settings, 
+  Search, 
+  Plus, 
+  MoreVertical,
+  Clock,
+  Eye,
+  Edit3,
+  Trash2,
+  UserPlus,
+  Activity,
+  FolderOpen,
+  Bell,
+  ChevronRight,
+  Globe,
+  Lock,
+  Calendar,
+  TrendingUp,
+  Zap,
+  LucideIcon
+} from 'lucide-react';
 
 // Type definitions
 type User = {
-  _id: string;
-  firstName: string;
-  lastName?: string;
+  id: string;
+  name: string;
   email: string;
-  role?: string;
+  avatar: string;
+  role: string;
 };
 
 type Workspace = {
-  _id: string;
+  id: string;
   name: string;
   description: string;
-  members: Array<{
-    userId: string;
-    role: 'Owner' | 'Editor' | 'Viewer';
-  }>;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
+  members: number;
+  documents: number;
+  whiteboards: number;
+  role: 'owner' | 'editor' | 'viewer';
+  lastActivity: string;
+  isPublic: boolean;
 };
 
 type Document = {
-  _id: string;
-  title: string;
-  content: string;
-  workspace: string;
-  createdBy: string;
-  updatedAt: string;
-  versions: Array<{
-    content: string;
-    createdBy: string;
-    createdAt: string;
-  }>;
-};
-
-type Whiteboard = {
-  _id: string;
+  id: string;
   title: string;
   workspace: string;
-  createdBy: string;
-  state: {
-    elements: any[];
-    appState: any;
-    files: any[];
-  };
-  updatedAt: string;
+  lastModified: string;
+  author: string;
+  type: 'document' | 'whiteboard';
+  collaborators: number;
 };
 
-type DashboardData = {
-  user: User | null;
+type ActivityItem = {
+  id: string;
+  type: 'document_edit' | 'workspace_invite' | 'whiteboard_create' | 'document_comment';
+  user: string;
+  action: string;
+  target: string;
+  time: string;
+};
+
+type Stats = {
+  totalDocuments: number;
+  totalWhiteboards: number;
+  totalWorkspaces: number;
+  activeCollaborators: number;
+  documentsThisWeek: number;
+  whiteboardsThisWeek: number;
+  collaborationTime: string;
+  realtimeUsers: number;
+};
+
+type MockData = {
+  user: User;
   workspaces: Workspace[];
-  documents: Document[];
-  whiteboards: Whiteboard[];
+  recentDocuments: Document[];
+  activity: ActivityItem[];
+  stats: Stats;
+};
+
+// Mock data based on your API structure
+const mockData: MockData = {
+  user: {
+    id: '1',
+    name: 'Alex Johnson',
+    email: 'alex@company.com',
+    avatar: 'AJ',
+    role: 'owner'
+  },
+  workspaces: [
+    {
+      id: '1',
+      name: 'Product Team',
+      description: 'Main product development workspace',
+      members: 12,
+      documents: 24,
+      whiteboards: 8,
+      role: 'owner',
+      lastActivity: '2 hours ago',
+      isPublic: false
+    },
+    {
+      id: '2',
+      name: 'Marketing Campaign',
+      description: 'Q1 2025 marketing materials',
+      members: 6,
+      documents: 15,
+      whiteboards: 12,
+      role: 'editor',
+      lastActivity: '1 day ago',
+      isPublic: true
+    },
+    {
+      id: '3',
+      name: 'Design System',
+      description: 'Company-wide design standards',
+      members: 8,
+      documents: 32,
+      whiteboards: 5,
+      role: 'viewer',
+      lastActivity: '3 days ago',
+      isPublic: false
+    }
+  ],
+  recentDocuments: [
+    {
+      id: '1',
+      title: 'API Documentation',
+      workspace: 'Product Team',
+      lastModified: '2 hours ago',
+      author: 'Alex Johnson',
+      type: 'document',
+      collaborators: 3
+    },
+    {
+      id: '2',
+      title: 'User Journey Map',
+      workspace: 'Product Team',
+      lastModified: '4 hours ago',
+      author: 'Sarah Chen',
+      type: 'whiteboard',
+      collaborators: 5
+    },
+    {
+      id: '3',
+      title: 'Sprint Planning Notes',
+      workspace: 'Product Team',
+      lastModified: '1 day ago',
+      author: 'Mike Wilson',
+      type: 'document',
+      collaborators: 8
+    },
+    {
+      id: '4',
+      title: 'Brand Guidelines',
+      workspace: 'Marketing Campaign',
+      lastModified: '2 days ago',
+      author: 'Lisa Park',
+      type: 'document',
+      collaborators: 4
+    }
+  ],
+  activity: [
+    {
+      id: '1',
+      type: 'document_edit',
+      user: 'Sarah Chen',
+      action: 'edited',
+      target: 'API Documentation',
+      time: '5 minutes ago'
+    },
+    {
+      id: '2',
+      type: 'workspace_invite',
+      user: 'Alex Johnson',
+      action: 'invited',
+      target: 'john@company.com to Product Team',
+      time: '1 hour ago'
+    },
+    {
+      id: '3',
+      type: 'whiteboard_create',
+      user: 'Mike Wilson',
+      action: 'created',
+      target: 'System Architecture Diagram',
+      time: '3 hours ago'
+    },
+    {
+      id: '4',
+      type: 'document_comment',
+      user: 'Lisa Park',
+      action: 'commented on',
+      target: 'Brand Guidelines',
+      time: '5 hours ago'
+    }
+  ],
   stats: {
-    totalDocuments: number;
-    totalWhiteboards: number;
-    totalWorkspaces: number;
-    recentActivity: number;
-  };
+    totalDocuments: 71,
+    totalWhiteboards: 25,
+    totalWorkspaces: 3,
+    activeCollaborators: 26,
+    documentsThisWeek: 12,
+    whiteboardsThisWeek: 6,
+    collaborationTime: '24h 15m',
+    realtimeUsers: 8
+  }
 };
 
 type MenuItem = {
@@ -100,11 +223,9 @@ type MenuItem = {
 type SidebarProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  user: User | null;
-  onLogout: () => void;
 };
 
-const Sidebar = ({ activeTab, setActiveTab, user, onLogout }: SidebarProps) => {
+const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const menuItems: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'workspaces', label: 'Workspaces', icon: FolderOpen },
@@ -149,25 +270,14 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }: SidebarProps) => {
       </nav>
       
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-              {user?.firstName?.charAt(0) || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+            {mockData.user.avatar}
           </div>
-          <button
-            onClick={onLogout}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-500"
-            title="Logout"
-          >
-            <LogOut size={16} />
-          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{mockData.user.name}</p>
+            <p className="text-xs text-gray-500 truncate">{mockData.user.email}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -177,12 +287,12 @@ const Sidebar = ({ activeTab, setActiveTab, user, onLogout }: SidebarProps) => {
 type StatCardProps = {
   title: string;
   value: string | number;
+  change?: string | number;
   icon: LucideIcon;
   color?: 'blue' | 'green' | 'purple' | 'orange';
-  loading?: boolean;
 };
 
-const StatCard = ({ title, value, icon: Icon, color = 'blue', loading }: StatCardProps) => {
+const StatCard = ({ title, value, change, icon: Icon, color = 'blue' }: StatCardProps) => {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-600 border-blue-200',
     green: 'bg-green-50 text-green-600 border-green-200',
@@ -195,12 +305,12 @@ const StatCard = ({ title, value, icon: Icon, color = 'blue', loading }: StatCar
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          {loading ? (
-            <div className="flex items-center mt-2">
-              <Loader2 size={20} className="animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+          {change && (
+            <p className="text-sm text-green-600 mt-1 flex items-center">
+              <TrendingUp size={16} className="mr-1" />
+              +{change} this week
+            </p>
           )}
         </div>
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${colorClasses[color]}`}>
@@ -213,32 +323,30 @@ const StatCard = ({ title, value, icon: Icon, color = 'blue', loading }: StatCar
 
 type WorkspaceCardProps = {
   workspace: Workspace;
-  onOpen: (workspaceId: string) => void;
-  onInvite: (workspaceId: string) => void;
-  currentUserId: string;
 };
 
-const WorkspaceCard = ({ workspace, onOpen, onInvite, currentUserId }: WorkspaceCardProps) => {
-  const userRole = workspace.members.find(m => m.userId === currentUserId)?.role || 'Viewer';
-  const isOwner = workspace.createdBy === currentUserId;
-
+const WorkspaceCard = ({ workspace }: WorkspaceCardProps) => {
   return (
     <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all hover:border-blue-200">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center space-x-2 mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{workspace.name}</h3>
-            <Lock size={16} className="text-gray-400" />
+            {workspace.isPublic ? (
+              <Globe size={16} className="text-gray-400" />
+            ) : (
+              <Lock size={16} className="text-gray-400" />
+            )}
           </div>
           <p className="text-gray-600 text-sm">{workspace.description}</p>
         </div>
         <div className="flex items-center space-x-2">
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            isOwner ? 'bg-green-100 text-green-700' :
-            userRole === 'Editor' ? 'bg-blue-100 text-blue-700' :
+            workspace.role === 'owner' ? 'bg-green-100 text-green-700' :
+            workspace.role === 'editor' ? 'bg-blue-100 text-blue-700' :
             'bg-gray-100 text-gray-700'
           }`}>
-            {userRole}
+            {workspace.role}
           </span>
           <button className="p-1 hover:bg-gray-100 rounded">
             <MoreVertical size={16} className="text-gray-400" />
@@ -246,39 +354,26 @@ const WorkspaceCard = ({ workspace, onOpen, onInvite, currentUserId }: Workspace
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="text-center">
-          <p className="text-2xl font-bold text-gray-900">{workspace.members.length}</p>
-          <p className="text-xs text-gray-500">Members</p>
+          <p className="text-2xl font-bold text-gray-900">{workspace.documents}</p>
+          <p className="text-xs text-gray-500">Documents</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-500">Created</p>
-          <p className="text-sm font-medium text-gray-900">
-            {new Date(workspace.createdAt).toLocaleDateString()}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{workspace.whiteboards}</p>
+          <p className="text-xs text-gray-500">Whiteboards</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-gray-900">{workspace.members}</p>
+          <p className="text-xs text-gray-500">Members</p>
         </div>
       </div>
       
       <div className="flex items-center justify-between text-sm">
-        <div className="flex space-x-2">
-          <button 
-            onClick={() => onOpen(workspace._id)}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Open
-          </button>
-          {isOwner && (
-            <button 
-              onClick={() => onInvite(workspace._id)}
-              className="text-green-600 hover:text-green-700 font-medium"
-            >
-              Invite
-            </button>
-          )}
-        </div>
-        <span className="text-gray-500">
-          {new Date(workspace.updatedAt).toLocaleDateString()}
-        </span>
+        <span className="text-gray-500">Last activity: {workspace.lastActivity}</span>
+        <button className="text-blue-600 hover:text-blue-700 font-medium">
+          Open workspace
+        </button>
       </div>
     </div>
   );
@@ -286,45 +381,39 @@ const WorkspaceCard = ({ workspace, onOpen, onInvite, currentUserId }: Workspace
 
 type DocumentItemProps = {
   doc: Document;
-  workspaceName?: string;
-  onEdit: (docId: string) => void;
-  onDelete: (docId: string) => void;
 };
 
-const DocumentItem = ({ doc, workspaceName, onEdit, onDelete }: DocumentItemProps) => {
+const DocumentItem = ({ doc }: DocumentItemProps) => {
+  const IconComponent = doc.type === 'document' ? FileText : Square;
+  
   return (
     <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
       <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-50 text-blue-600">
-          <FileText size={20} />
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+          doc.type === 'document' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+        }`}>
+          <IconComponent size={20} />
         </div>
         <div>
           <h4 className="font-medium text-gray-900">{doc.title}</h4>
-          <p className="text-sm text-gray-500">
-            {workspaceName} • {new Date(doc.updatedAt).toLocaleDateString()}
-          </p>
+          <p className="text-sm text-gray-500">{doc.workspace} • {doc.lastModified}</p>
         </div>
       </div>
       
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">{doc.versions?.length || 0} versions</span>
+          <Users size={16} className="text-gray-400" />
+          <span className="text-sm text-gray-500">{doc.collaborators}</span>
         </div>
         <div className="flex items-center space-x-1">
           <button className="p-2 hover:bg-gray-100 rounded">
             <Eye size={16} className="text-gray-400" />
           </button>
-          <button 
-            onClick={() => onEdit(doc._id)}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
+          <button className="p-2 hover:bg-gray-100 rounded">
             <Edit3 size={16} className="text-gray-400" />
           </button>
-          <button 
-            onClick={() => onDelete(doc._id)}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
-            <Trash2 size={16} className="text-red-400" />
+          <button className="p-2 hover:bg-gray-100 rounded">
+            <MoreVertical size={16} className="text-gray-400" />
           </button>
         </div>
       </div>
@@ -332,49 +421,33 @@ const DocumentItem = ({ doc, workspaceName, onEdit, onDelete }: DocumentItemProp
   );
 };
 
-type WhiteboardItemProps = {
-  whiteboard: Whiteboard;
-  workspaceName?: string;
-  onEdit: (whiteboardId: string) => void;
-  onDelete: (whiteboardId: string) => void;
+type ActivityItemProps = {
+  activity: ActivityItem;
 };
 
-const WhiteboardItem = ({ whiteboard, workspaceName, onEdit, onDelete }: WhiteboardItemProps) => {
+const ActivityItem = ({ activity }: ActivityItemProps) => {
+  const getActivityIcon = (type: ActivityItem['type']): LucideIcon => {
+    switch (type) {
+      case 'document_edit': return Edit3;
+      case 'workspace_invite': return UserPlus;
+      case 'whiteboard_create': return Square;
+      case 'document_comment': return FileText;
+      default: return Activity;
+    }
+  };
+
+  const Icon = getActivityIcon(activity.type);
+
   return (
-    <div className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
-      <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-purple-50 text-purple-600">
-          <Square size={20} />
-        </div>
-        <div>
-          <h4 className="font-medium text-gray-900">{whiteboard.title}</h4>
-          <p className="text-sm text-gray-500">
-            {workspaceName} • {new Date(whiteboard.updatedAt).toLocaleDateString()}
-          </p>
-        </div>
+    <div className="flex items-center space-x-4 p-4">
+      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+        <Icon size={16} className="text-gray-600" />
       </div>
-      
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">{whiteboard.state?.elements?.length || 0} elements</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <button className="p-2 hover:bg-gray-100 rounded">
-            <Eye size={16} className="text-gray-400" />
-          </button>
-          <button 
-            onClick={() => onEdit(whiteboard._id)}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
-            <Edit3 size={16} className="text-gray-400" />
-          </button>
-          <button 
-            onClick={() => onDelete(whiteboard._id)}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
-            <Trash2 size={16} className="text-red-400" />
-          </button>
-        </div>
+      <div className="flex-1">
+        <p className="text-sm text-gray-900">
+          <span className="font-medium">{activity.user}</span> {activity.action} <span className="font-medium">{activity.target}</span>
+        </p>
+        <p className="text-xs text-gray-500">{activity.time}</p>
       </div>
     </div>
   );
@@ -383,232 +456,8 @@ const WhiteboardItem = ({ whiteboard, workspaceName, onEdit, onDelete }: Whitebo
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData>({
-    user: null,
-    workspaces: [],
-    documents: [],
-    whiteboards: [],
-    stats: {
-      totalDocuments: 0,
-      totalWhiteboards: 0,
-      totalWorkspaces: 0,
-      recentActivity: 0
-    }
-  });
-  
-  const [newWorkspaceName, setNewWorkspaceName] = useState('');
-  const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
-  const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
-  const [showCreateDocument, setShowCreateDocument] = useState(false);
-  const [showCreateWhiteboard, setShowCreateWhiteboard] = useState(false);
-  const [newDocumentTitle, setNewDocumentTitle] = useState('');
-  const [newWhiteboardTitle, setNewWhiteboardTitle] = useState('');
-  const [selectedWorkspace, setSelectedWorkspace] = useState('');
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteWorkspaceId, setInviteWorkspaceId] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Editor' | 'Viewer'>('Viewer');
-
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/auth');
-      return;
-    }
-    loadDashboardData();
-  }, [router]);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Get user data from localStorage
-      const userData = localStorage.getItem('user');
-      const user = userData ? JSON.parse(userData) : null;
-
-      // Load workspaces
-      const workspacesResponse = await apiCall('/api/workspaces');
-      const workspaces = workspacesResponse.workspaces || [];
-
-      // Load documents for all workspaces
-      let allDocuments: Document[] = [];
-      let allWhiteboards: Whiteboard[] = [];
-
-      // For now, we'll use empty arrays since we need specific endpoints
-      // You can implement these when you have workspace-specific document/whiteboard endpoints
-
-      setDashboardData({
-        user,
-        workspaces,
-        documents: allDocuments,
-        whiteboards: allWhiteboards,
-        stats: {
-          totalDocuments: allDocuments.length,
-          totalWhiteboards: allWhiteboards.length,
-          totalWorkspaces: workspaces.length,
-          recentActivity: 0
-        }
-      });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      // If token is invalid, redirect to auth
-      if (error instanceof Error && error.message.includes('401')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/auth');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateWorkspace = async () => {
-    if (!newWorkspaceName.trim()) return;
-    
-    try {
-      const response = await apiCall('/api/workspace', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: newWorkspaceName,
-          description: newWorkspaceDescription
-        })
-      });
-      
-      if (response.success) {
-        setNewWorkspaceName('');
-        setNewWorkspaceDescription('');
-        setShowCreateWorkspace(false);
-        loadDashboardData();
-      }
-    } catch (error) {
-      console.error('Error creating workspace:', error);
-      alert('Failed to create workspace: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleCreateDocument = async () => {
-    if (!newDocumentTitle.trim() || !selectedWorkspace) return;
-    
-    try {
-      const response = await apiCall('/api/documents', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: newDocumentTitle,
-          workspaceId: selectedWorkspace
-        })
-      });
-      
-      if (response.success) {
-        setNewDocumentTitle('');
-        setSelectedWorkspace('');
-        setShowCreateDocument(false);
-        loadDashboardData();
-        // Navigate to the new document
-        router.push(`/document/${response.document.id}`);
-      }
-    } catch (error) {
-      console.error('Error creating document:', error);
-      alert('Failed to create document: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleCreateWhiteboard = async () => {
-    if (!newWhiteboardTitle.trim() || !selectedWorkspace) return;
-    
-    try {
-      const response = await apiCall('/api/whiteboards', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: newWhiteboardTitle,
-          workspaceId: selectedWorkspace
-        })
-      });
-      
-      setNewWhiteboardTitle('');
-      setSelectedWorkspace('');
-      setShowCreateWhiteboard(false);
-      loadDashboardData();
-      // Navigate to the new whiteboard
-      router.push(`/whiteboard/${response._id}`);
-    } catch (error) {
-      console.error('Error creating whiteboard:', error);
-      alert('Failed to create whiteboard: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleInviteUser = async () => {
-    if (!inviteEmail.trim() || !inviteWorkspaceId) return;
-    
-    try {
-      const response = await apiCall(`/api/workspace/${inviteWorkspaceId}/invite`, {
-        method: 'POST',
-        body: JSON.stringify({
-          email: inviteEmail,
-          role: inviteRole
-        })
-      });
-      
-      if (response.success) {
-        setInviteEmail('');
-        setInviteRole('Viewer');
-        setShowInviteModal(false);
-        setInviteWorkspaceId('');
-        alert('Invitation sent successfully!');
-      }
-    } catch (error) {
-      console.error('Error inviting user:', error);
-      alert('Failed to send invitation: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleDeleteDocument = async (docId: string) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-    
-    try {
-      // You'll need to implement this endpoint in your backend
-      await apiCall(`/api/documents/${docId}`, {
-        method: 'DELETE'
-      });
-      loadDashboardData();
-    } catch (error) {
-      console.error('Error deleting document:', error);
-      alert('Failed to delete document: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleDeleteWhiteboard = async (whiteboardId: string) => {
-    if (!confirm('Are you sure you want to delete this whiteboard?')) return;
-    
-    try {
-      // You'll need to implement this endpoint in your backend
-      await apiCall(`/api/whiteboards/${whiteboardId}`, {
-        method: 'DELETE'
-      });
-      loadDashboardData();
-    } catch (error) {
-      console.error('Error deleting whiteboard:', error);
-      alert('Failed to delete whiteboard: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/auth');
-  };
 
   const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
-        </div>
-      );
-    }
-
     switch (activeTab) {
       case 'dashboard':
         return (
@@ -617,53 +466,56 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
                 title="Total Documents"
-                value={dashboardData.stats.totalDocuments}
+                value={mockData.stats.totalDocuments}
+                change={mockData.stats.documentsThisWeek}
                 icon={FileText}
                 color="blue"
               />
               <StatCard
                 title="Whiteboards"
-                value={dashboardData.stats.totalWhiteboards}
+                value={mockData.stats.totalWhiteboards}
+                change={mockData.stats.whiteboardsThisWeek}
                 icon={Square}
                 color="purple"
               />
               <StatCard
-                title="Workspaces"
-                value={dashboardData.stats.totalWorkspaces}
-                icon={FolderOpen}
+                title="Active Users"
+                value={mockData.stats.realtimeUsers}
+                icon={Zap}
                 color="green"
               />
               <StatCard
-                title="Recent Activity"
-                value={dashboardData.stats.recentActivity}
-                icon={Activity}
+                title="Collaboration Time"
+                value={mockData.stats.collaborationTime}
+                icon={Clock}
                 color="orange"
               />
             </div>
 
-            {/* Recent Documents */}
-            <div className="bg-white rounded-xl border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Recent Documents</h3>
-              </div>
-              <div className="divide-y divide-gray-200">
-                {dashboardData.documents.slice(0, 5).map((doc) => {
-                  const workspace = dashboardData.workspaces.find(w => w._id === doc.workspace);
-                  return (
-                    <DocumentItem 
-                      key={doc._id} 
-                      doc={doc} 
-                      workspaceName={workspace?.name}
-                      onEdit={(docId) => router.push(`/document/${docId}`)}
-                      onDelete={handleDeleteDocument}
-                    />
-                  );
-                })}
-                {dashboardData.documents.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    No documents yet. Create your first document!
+            {/* Recent Activity & Documents */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-xl border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Documents</h3>
                   </div>
-                )}
+                  <div className="divide-y divide-gray-200">
+                    {mockData.recentDocuments.map((doc) => (
+                      <DocumentItem key={doc.id} doc={doc} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl border border-gray-200">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+                </div>
+                <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                  {mockData.activity.map((activity) => (
+                    <ActivityItem key={activity.id} activity={activity} />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -674,112 +526,17 @@ const Dashboard = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Workspaces</h2>
-              <button 
-                onClick={() => setShowCreateWorkspace(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
-              >
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <Plus size={20} />
                 <span>New Workspace</span>
               </button>
             </div>
             
-            {showCreateWorkspace && (
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">Create New Workspace</h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Workspace name"
-                    value={newWorkspaceName}
-                    onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <textarea
-                    placeholder="Workspace description"
-                    value={newWorkspaceDescription}
-                    onChange={(e) => setNewWorkspaceDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                  />
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={handleCreateWorkspace}
-                      disabled={!newWorkspaceName.trim()}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Create
-                    </button>
-                    <button
-                      onClick={() => setShowCreateWorkspace(false)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dashboardData.workspaces.map((workspace) => (
-                <WorkspaceCard 
-                  key={workspace._id} 
-                  workspace={workspace} 
-                  currentUserId={dashboardData.user?._id || ''}
-                  onOpen={(workspaceId) => router.push(`/workspace/${workspaceId}`)}
-                  onInvite={(workspaceId) => {
-                    setInviteWorkspaceId(workspaceId);
-                    setShowInviteModal(true);
-                  }}
-                />
+              {mockData.workspaces.map((workspace) => (
+                <WorkspaceCard key={workspace.id} workspace={workspace} />
               ))}
             </div>
-
-            {/* Invite Modal */}
-            {showInviteModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">
-                  <h3 className="text-lg font-semibold mb-4">Invite User to Workspace</h3>
-                  <div className="space-y-4">
-                    <input
-                      type="email"
-                      placeholder="Email address"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <select
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value as 'Editor' | 'Viewer')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Viewer">Viewer</option>
-                      <option value="Editor">Editor</option>
-                    </select>
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={handleInviteUser}
-                        disabled={!inviteEmail.trim()}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Send Invite
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowInviteModal(false);
-                          setInviteEmail('');
-                          setInviteRole('Viewer');
-                          setInviteWorkspaceId('');
-                        }}
-                        className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         );
 
@@ -788,76 +545,17 @@ const Dashboard = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Documents</h2>
-              <button 
-                onClick={() => setShowCreateDocument(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
-              >
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <Plus size={20} />
                 <span>New Document</span>
               </button>
             </div>
             
-            {showCreateDocument && (
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">Create New Document</h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Document title"
-                    value={newDocumentTitle}
-                    onChange={(e) => setNewDocumentTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <select
-                    value={selectedWorkspace}
-                    onChange={(e) => setSelectedWorkspace(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select a workspace</option>
-                    {dashboardData.workspaces.map(workspace => (
-                      <option key={workspace._id} value={workspace._id}>
-                        {workspace.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={handleCreateDocument}
-                      disabled={!newDocumentTitle.trim() || !selectedWorkspace}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Create
-                    </button>
-                    <button
-                      onClick={() => setShowCreateDocument(false)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <div className="bg-white rounded-xl border border-gray-200">
               <div className="divide-y divide-gray-200">
-                {dashboardData.documents.map((doc) => {
-                  const workspace = dashboardData.workspaces.find(w => w._id === doc.workspace);
-                  return (
-                    <DocumentItem 
-                      key={doc._id} 
-                      doc={doc} 
-                      workspaceName={workspace?.name}
-                      onEdit={(docId) => router.push(`/document/${docId}`)}
-                      onDelete={handleDeleteDocument}
-                    />
-                  );
-                })}
-                {dashboardData.documents.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    No documents yet. Create your first document!
-                  </div>
-                )}
+                {mockData.recentDocuments.filter(doc => doc.type === 'document').map((doc) => (
+                  <DocumentItem key={doc.id} doc={doc} />
+                ))}
               </div>
             </div>
           </div>
@@ -868,76 +566,17 @@ const Dashboard = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Whiteboards</h2>
-              <button 
-                onClick={() => setShowCreateWhiteboard(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
-              >
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2">
                 <Plus size={20} />
                 <span>New Whiteboard</span>
               </button>
             </div>
             
-            {showCreateWhiteboard && (
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">Create New Whiteboard</h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Whiteboard title"
-                    value={newWhiteboardTitle}
-                    onChange={(e) => setNewWhiteboardTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <select
-                    value={selectedWorkspace}
-                    onChange={(e) => setSelectedWorkspace(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select a workspace</option>
-                    {dashboardData.workspaces.map(workspace => (
-                      <option key={workspace._id} value={workspace._id}>
-                        {workspace.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={handleCreateWhiteboard}
-                      disabled={!newWhiteboardTitle.trim() || !selectedWorkspace}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Create
-                    </button>
-                    <button
-                      onClick={() => setShowCreateWhiteboard(false)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             <div className="bg-white rounded-xl border border-gray-200">
               <div className="divide-y divide-gray-200">
-                {dashboardData.whiteboards.map((whiteboard) => {
-                  const workspace = dashboardData.workspaces.find(w => w._id === whiteboard.workspace);
-                  return (
-                    <WhiteboardItem 
-                      key={whiteboard._id} 
-                      whiteboard={whiteboard} 
-                      workspaceName={workspace?.name}
-                      onEdit={(whiteboardId) => router.push(`/whiteboard/${whiteboardId}`)}
-                      onDelete={handleDeleteWhiteboard}
-                    />
-                  );
-                })}
-                {dashboardData.whiteboards.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    No whiteboards yet. Create your first whiteboard!
-                  </div>
-                )}
+                {mockData.recentDocuments.filter(doc => doc.type === 'whiteboard').map((doc) => (
+                  <DocumentItem key={doc.id} doc={doc} />
+                ))}
               </div>
             </div>
           </div>
@@ -949,8 +588,10 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900">Activity Feed</h2>
             
             <div className="bg-white rounded-xl border border-gray-200">
-              <div className="p-8 text-center text-gray-500">
-                Activity feed coming soon! This will show recent edits, collaborations, and workspace changes.
+              <div className="divide-y divide-gray-200">
+                {mockData.activity.map((activity) => (
+                  <ActivityItem key={activity.id} activity={activity} />
+                ))}
               </div>
             </div>
           </div>
@@ -966,32 +607,13 @@ const Dashboard = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Settings</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input 
-                      type="text" 
-                      defaultValue={dashboardData.user?.firstName || ''} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input 
-                      type="text" 
-                      defaultValue={dashboardData.user?.lastName || ''} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" defaultValue={mockData.user.name} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input 
-                      type="email" 
-                      defaultValue={dashboardData.user?.email || ''} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    />
+                    <input type="email" defaultValue={mockData.user.email} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                   </div>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
-                    Update Profile
-                  </button>
                 </div>
               </div>
               
@@ -1006,21 +628,6 @@ const Dashboard = () => {
                     <span className="text-sm font-medium text-gray-700">Real-time updates</span>
                     <input type="checkbox" defaultChecked className="rounded border-gray-300" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Show presence indicators</span>
-                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Auto-save documents</span>
-                    <input type="checkbox" defaultChecked className="rounded border-gray-300" />
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="text-md font-medium text-gray-900 mb-3">Danger Zone</h4>
-                  <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium">
-                    Delete Account
-                  </button>
                 </div>
               </div>
             </div>
@@ -1032,27 +639,12 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        user={dashboardData.user}
-        onLogout={handleLogout}
-      />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <div className="flex-1 flex flex-col">
+       
         <header className="bg-white border-b border-gray-200 px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -1074,12 +666,13 @@ const Dashboard = () => {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                {dashboardData.user?.firstName?.charAt(0) || 'U'}
+                {mockData.user.avatar}
               </div>
             </div>
           </div>
         </header>
 
+        {/* Main Content */}
         <main className="flex-1 p-8">
           {renderContent()}
         </main>
