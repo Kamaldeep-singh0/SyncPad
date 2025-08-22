@@ -22,7 +22,7 @@ export default function DashboardPage() {
             <WorkspaceGrid />
           </div>
           <div>
-            <RecentActivity />
+           
           </div>
         </div>
       </main>
